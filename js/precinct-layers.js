@@ -128,9 +128,14 @@ function loadPrecincts(map) {
             // Polling location pins — rendered as map-native symbol layer
             createPollingPinImage(map, geojson);
 
-            // Hover interaction
+            // Hover interaction — only update feature-state when the hovered precinct changes
+            // This prevents unnecessary repaints that cause popup jitter
             map.on('mousemove', 'precinct-fill', function(e) {
                 if (e.features.length > 0) {
+                    const newId = e.features[0].id;
+                    // Skip if we're still hovering the same precinct
+                    if (newId === hoveredPrecinctId) return;
+
                     // Clear previous hover
                     if (hoveredPrecinctId !== null) {
                         map.setFeatureState(
@@ -138,7 +143,7 @@ function loadPrecincts(map) {
                             { hover: false }
                         );
                     }
-                    hoveredPrecinctId = e.features[0].id;
+                    hoveredPrecinctId = newId;
                     map.setFeatureState(
                         { source: 'precincts', id: hoveredPrecinctId },
                         { hover: true }
