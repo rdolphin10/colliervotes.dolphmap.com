@@ -7,8 +7,8 @@ const CONFIG = {
     mapbox: {
         accessToken: 'pk.eyJ1IjoicnlhbmRvbHBoanIiLCJhIjoiY21nenN1bGR1MDkwcWFtcHV3MTl6bWRodSJ9.VnbaNeUpr7ixd2knIEdEhg',
         style: 'mapbox://styles/mapbox/streets-v12',
-        center: [-81.68, 26.16],
-        zoom: 9.5,
+        center: [-81.58, 26.14],
+        zoom: 9.2,
         minZoom: 8,
         maxZoom: 16,
         // Bounds: SW corner, NE corner — padded ~0.3° around precinct extents
