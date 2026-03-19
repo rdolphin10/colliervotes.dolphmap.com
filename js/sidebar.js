@@ -1,11 +1,12 @@
 /**
- * SIDEBAR.JS - Search, Precinct List, and Detail Panel
+ * SIDEBAR.JS - Search, Expandable Precinct List
  *
- * Manages the sidebar UI: search filtering, precinct list display,
- * and detail panel for selected precincts.
+ * Manages the sidebar UI: address search, precinct filtering,
+ * and expandable inline precinct details.
  */
 
 let allPrecincts = [];
+let activePrecinct = null;
 
 /**
  * Initialize sidebar when precinct data loads
@@ -13,35 +14,34 @@ let allPrecincts = [];
 document.addEventListener('precinctsLoaded', function(e) {
     const geojson = e.detail.geojson;
 
-    // Build sorted precinct list
+    // Build sorted precinct list with full properties
     allPrecincts = geojson.features.map(function(f) {
         return {
             precinct: f.properties.PRECINCT,
-            name: f.properties.PrecinctNa || ''
+            name: f.properties.PrecinctNa || '',
+            address: f.properties.Address || '',
+            pinLng: f.properties.PinLng,
+            pinLat: f.properties.PinLat
         };
     }).sort(function(a, b) {
         return parseInt(a.precinct) - parseInt(b.precinct);
     });
 
-    // Update stats
     document.getElementById('precinct-count').textContent = allPrecincts.length;
-
-    // Render full list
     renderPrecinctList(allPrecincts);
-
-    // Set up search
     setupSearch();
 });
 
 /**
- * Show precinct detail when a precinct is selected (from map click)
+ * Handle precinct selection from map click — highlight in list
  */
 document.addEventListener('precinctSelected', function(e) {
-    showDetail(e.detail.properties);
+    const precinct = e.detail.properties.PRECINCT;
+    highlightListItem(precinct);
 });
 
 /**
- * Render the precinct list in the sidebar
+ * Render simple precinct list — click zooms + opens popup
  */
 function renderPrecinctList(precincts) {
     const listEl = document.getElementById('precinct-list');
@@ -59,20 +59,43 @@ function renderPrecinctList(precincts) {
         return '<div class="precinct-list-item" data-precinct="' + escapeAttr(p.precinct) + '">' +
             '<span class="precinct-number">' + escapeHTML(p.precinct) + '</span>' +
             '<span class="precinct-name">' + escapeHTML(p.name) + '</span>' +
-            '</div>';
+        '</div>';
     }).join('');
 
-    // Click handler for list items
     listEl.querySelectorAll('.precinct-list-item').forEach(function(item) {
         item.addEventListener('click', function() {
-            const precinctNum = this.getAttribute('data-precinct');
-            selectPrecinctByNumber(precinctNum);
+            selectPrecinctByNumber(this.getAttribute('data-precinct'));
         });
     });
+
+    // Restore active highlight
+    if (activePrecinct) {
+        highlightListItem(activePrecinct);
+    }
 }
 
 /**
- * Set up search input with debounce
+ * Highlight the selected precinct in the list and scroll to it
+ */
+function highlightListItem(precinctNum) {
+    // Clear previous
+    document.querySelectorAll('.precinct-list-item.active').forEach(function(el) {
+        el.classList.remove('active');
+    });
+
+    activePrecinct = precinctNum;
+
+    const item = document.querySelector('.precinct-list-item[data-precinct="' + precinctNum + '"]');
+    if (item) {
+        item.classList.add('active');
+        setTimeout(function() {
+            item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+    }
+}
+
+/**
+ * Set up precinct filter search
  */
 function setupSearch() {
     const input = document.getElementById('search-input');
@@ -84,18 +107,17 @@ function setupSearch() {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(function() {
             if (!term) {
-                // Reset to full list
                 renderPrecinctList(allPrecincts);
                 filterPrecincts('');
                 document.getElementById('precinct-count').textContent = allPrecincts.length;
                 return;
             }
 
-            // Filter the list
             const termLower = term.toLowerCase();
             const filtered = allPrecincts.filter(function(p) {
                 return p.precinct.toLowerCase().includes(termLower) ||
-                       p.name.toLowerCase().includes(termLower);
+                       p.name.toLowerCase().includes(termLower) ||
+                       p.address.toLowerCase().includes(termLower);
             });
 
             renderPrecinctList(filtered);
@@ -106,43 +128,26 @@ function setupSearch() {
 }
 
 /**
- * Show the detail panel for a precinct
- */
-function showDetail(properties) {
-    const listEl = document.getElementById('precinct-list');
-    const statsEl = document.getElementById('sidebar-stats');
-    const searchEl = document.querySelector('.sidebar-search');
-    const detailEl = document.getElementById('detail-panel');
-    const noResultsEl = document.getElementById('no-results');
-
-    const addressEl = document.querySelector('.address-search');
-
-    // Hide list, show detail
-    listEl.style.display = 'none';
-    statsEl.style.display = 'none';
-    searchEl.style.display = 'none';
-    noResultsEl.style.display = 'none';
-    if (addressEl) addressEl.style.display = 'none';
-    detailEl.classList.add('active');
-
-    // Populate
-    document.getElementById('detail-precinct-number').textContent = properties.PRECINCT || '';
-    document.getElementById('detail-polling-location').textContent = properties.PrecinctNa || 'Not available';
-    document.getElementById('detail-address').textContent = properties.Address || 'Not available';
-}
-
-/**
- * Back button — return to list view
+ * DOMContentLoaded — directory toggle + mobile toggle
  */
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('detail-back').addEventListener('click', function() {
-        hideDetail();
-        clearSelection();
+    // Directory collapse/expand
+    const dirToggle = document.getElementById('directory-toggle');
+    const dirSection = document.getElementById('directory-section');
+    const sidebar = document.getElementById('sidebar');
+
+    dirToggle.addEventListener('click', function() {
+        dirSection.classList.toggle('collapsed');
+        sidebar.classList.toggle('auto-height', dirSection.classList.contains('collapsed'));
+        // Resize map to fill available space
+        const map = getMap();
+        if (map) {
+            setTimeout(function() { map.resize(); }, 50);
+        }
     });
 
-    // Mobile toggle
+    // Mobile sidebar toggle
     const toggleBtn = document.getElementById('sidebar-toggle');
-    const sidebar = document.getElementById('sidebar');
 
     toggleBtn.addEventListener('click', function() {
         sidebar.classList.toggle('collapsed');
@@ -151,23 +156,6 @@ document.addEventListener('DOMContentLoaded', function() {
             : '\u2715 Close';
     });
 });
-
-/**
- * Hide detail panel, show list view
- */
-function hideDetail() {
-    const listEl = document.getElementById('precinct-list');
-    const statsEl = document.getElementById('sidebar-stats');
-    const searchEl = document.querySelector('.sidebar-search');
-    const detailEl = document.getElementById('detail-panel');
-    const addressEl = document.querySelector('.address-search');
-
-    detailEl.classList.remove('active');
-    listEl.style.display = '';
-    statsEl.style.display = '';
-    searchEl.style.display = '';
-    if (addressEl) addressEl.style.display = '';
-}
 
 /**
  * Escape HTML to prevent XSS
@@ -209,11 +197,10 @@ function setupAddressSearch() {
         if (!address) return;
 
         btn.disabled = true;
-        btn.textContent = '...';
+        btn.innerHTML = '...';
         resultEl.className = 'address-search-result';
         resultEl.style.display = 'none';
 
-        // Geocode via Mapbox
         const query = encodeURIComponent(address);
         const token = CONFIG.mapbox.accessToken;
         const url = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + query +
@@ -224,7 +211,7 @@ function setupAddressSearch() {
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 btn.disabled = false;
-                btn.innerHTML = '&#8594;';
+                btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
 
                 if (!data.features || data.features.length === 0) {
                     resultEl.textContent = 'Address not found. Try including city and state.';
@@ -232,10 +219,7 @@ function setupAddressSearch() {
                     return;
                 }
 
-                const coords = data.features[0].center; // [lng, lat]
-                const matchedAddress = data.features[0].place_name;
-
-                // Find which precinct contains this point
+                const coords = data.features[0].center;
                 const precinct = findPrecinctAtPoint(coords[0], coords[1]);
 
                 if (precinct) {
@@ -245,31 +229,23 @@ function setupAddressSearch() {
                         escapeHTML(precinct.properties.PRECINCT) + '</span>';
                     resultEl.className = 'address-search-result visible success';
 
-                    // Click the precinct link to select it
                     resultEl.querySelector('.address-result-link').addEventListener('click', function() {
                         selectPrecinctByNumber(this.getAttribute('data-precinct'));
                     });
 
-                    // Add a marker at the searched address
                     addAddressMarker(coords);
-
-                    // Select the precinct
                     selectPrecinctByNumber(precinct.properties.PRECINCT);
                 } else {
                     resultEl.textContent = 'This address does not appear to be within a Collier County precinct.';
                     resultEl.className = 'address-search-result visible error';
-
-                    // Still show the point on the map
                     addAddressMarker(coords);
                     const map = getMap();
-                    if (map) {
-                        map.flyTo({ center: coords, zoom: 13 });
-                    }
+                    if (map) map.flyTo({ center: coords, zoom: 13 });
                 }
             })
             .catch(function(err) {
                 btn.disabled = false;
-                btn.innerHTML = '&#8594;';
+                btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
                 resultEl.textContent = 'Search failed. Please try again.';
                 resultEl.className = 'address-search-result visible error';
                 console.error('Address search error:', err);
@@ -282,13 +258,8 @@ function setupAddressSearch() {
     });
 }
 
-/**
- * Find which precinct polygon contains a point
- * Uses ray-casting algorithm for point-in-polygon test
- */
 function findPrecinctAtPoint(lng, lat) {
     if (!addressGeojson) return null;
-
     for (let i = 0; i < addressGeojson.features.length; i++) {
         const feature = addressGeojson.features[i];
         if (pointInPolygonFeature(lng, lat, feature.geometry)) {
@@ -298,44 +269,30 @@ function findPrecinctAtPoint(lng, lat) {
     return null;
 }
 
-/**
- * Test if a point is inside a polygon/multipolygon geometry
- */
 function pointInPolygonFeature(lng, lat, geometry) {
     if (geometry.type === 'Polygon') {
         return pointInPolygon(lng, lat, geometry.coordinates);
     } else if (geometry.type === 'MultiPolygon') {
         for (let i = 0; i < geometry.coordinates.length; i++) {
-            if (pointInPolygon(lng, lat, geometry.coordinates[i])) {
-                return true;
-            }
+            if (pointInPolygon(lng, lat, geometry.coordinates[i])) return true;
         }
     }
     return false;
 }
 
-/**
- * Ray-casting point-in-polygon for a single polygon (with holes)
- */
 function pointInPolygon(lng, lat, rings) {
-    // Check outer ring
     if (!pointInRing(lng, lat, rings[0])) return false;
-    // Check holes — point must NOT be in any hole
     for (let i = 1; i < rings.length; i++) {
         if (pointInRing(lng, lat, rings[i])) return false;
     }
     return true;
 }
 
-/**
- * Ray-casting algorithm for a single ring
- */
 function pointInRing(lng, lat, ring) {
     let inside = false;
     for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
         const xi = ring[i][0], yi = ring[i][1];
         const xj = ring[j][0], yj = ring[j][1];
-
         if (((yi > lat) !== (yj > lat)) &&
             (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi)) {
             inside = !inside;
@@ -344,21 +301,17 @@ function pointInRing(lng, lat, ring) {
     return inside;
 }
 
-/**
- * Add/move a marker showing the searched address location
- */
 let addressMarker = null;
 
 function addAddressMarker(coords) {
     const map = getMap();
     if (!map) return;
-
     if (addressMarker) {
         addressMarker.setLngLat(coords);
     } else {
         const el = document.createElement('div');
         el.style.cssText =
-            'width: 14px; height: 14px; background: #231f20; border: 3px solid #fff; ' +
+            'width: 14px; height: 14px; background: #061550; border: 3px solid #fff; ' +
             'border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.4);';
         addressMarker = new mapboxgl.Marker({ element: el, anchor: 'center' })
             .setLngLat(coords)

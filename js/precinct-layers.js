@@ -202,19 +202,30 @@ function selectPrecinct(map, feature) {
         { selected: true }
     );
 
-    // Fit bounds to the selected precinct
+    const props = feature.properties;
+    const pinLng = parseFloat(props.PinLng);
+    const pinLat = parseFloat(props.PinLat);
+
+    // Fit bounds to include BOTH the precinct polygon AND the polling pin
     const bounds = getBounds(feature.geometry);
     if (bounds) {
-        map.fitBounds(bounds, { padding: 80, maxZoom: 14 });
+        const fitBounds = new mapboxgl.LngLatBounds(bounds);
+        // Extend to include the polling pin if it's outside the polygon
+        if (pinLng && pinLat) {
+            fitBounds.extend([pinLng, pinLat]);
+        }
+        // Use generous padding so the popup is never cut off
+        map.fitBounds(fitBounds, {
+            padding: { top: 120, bottom: 120, left: 100, right: 100 },
+            maxZoom: 14
+        });
     }
 
-    // Show popup at the polling pin location
-    const props = feature.properties;
-    const lng = props.PinLng;
-    const lat = props.PinLat;
-
-    if (lng && lat) {
-        showPollingPopup(map, [lng, lat], props);
+    // Show popup at the polling pin after the map finishes moving
+    if (pinLng && pinLat) {
+        setTimeout(function() {
+            showPollingPopup(map, [pinLng, pinLat], props);
+        }, 800);
     }
 
     document.dispatchEvent(new CustomEvent('precinctSelected', {
@@ -241,24 +252,31 @@ function showPollingPopup(map, lngLat, props) {
 
     const html =
         '<div class="polling-popup">' +
-            '<div class="polling-popup-header">' +
-                '<span class="polling-popup-precinct">Precinct ' + escapePopupHTML(precinct) + '</span>' +
+            '<div class="polling-popup-badge">Precinct ' + escapePopupHTML(precinct) + '</div>' +
+            '<div class="polling-popup-body">' +
+                '<div class="polling-popup-name">' + escapePopupHTML(name) + '</div>' +
+                (address
+                    ? '<div class="polling-popup-address">' +
+                        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                            '<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>' +
+                            '<circle cx="12" cy="9" r="2.5"/>' +
+                        '</svg>' +
+                        '<span>' + escapePopupHTML(address) + '</span>' +
+                      '</div>'
+                    : '') +
             '</div>' +
-            '<div class="polling-popup-name">' + escapePopupHTML(name) + '</div>' +
-            (address ? '<div class="polling-popup-address">' + escapePopupHTML(address) + '</div>' : '') +
             '<a class="polling-popup-directions" href="' + directionsUrl + '" target="_blank" rel="noopener noreferrer">' +
-                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-                    '<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>' +
-                    '<circle cx="12" cy="9" r="2.5"/>' +
+                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                    '<polygon points="3 11 22 2 13 21 11 13 3 11"/>' +
                 '</svg>' +
-                ' Get Directions' +
+                'Get Directions' +
             '</a>' +
         '</div>';
 
     activePopup = new mapboxgl.Popup({
         closeButton: true,
         closeOnClick: false,
-        maxWidth: '280px',
+        maxWidth: '300px',
         offset: 15
     })
     .setLngLat(lngLat)
