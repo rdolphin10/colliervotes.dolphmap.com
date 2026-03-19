@@ -47,21 +47,16 @@ html, body {
     z-index: 10;
     box-shadow: var(--shadow-medium);
     overflow: hidden;
-    transition: height 0.25s ease;
+    position: absolute;
+    left: 0;
+    top: 0;
 }
 
 .sidebar.auto-height {
     height: auto;
     max-height: 100%;
-    position: absolute;
-    left: 0;
-    top: 0;
     border-radius: 0 0 12px 0;
     box-shadow: var(--shadow-large);
-}
-
-.sidebar.auto-height ~ .map-container {
-    margin-left: 0;
 }
 
 .sidebar.auto-height .sidebar-footer {
@@ -489,12 +484,21 @@ html, body {
     position: absolute;
     bottom: 26px;
     right: 0;
-    background: rgba(255, 255, 255, 0.85);
-    padding: 3px 8px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 4px 10px;
     font-size: 10px;
     color: var(--color-text-secondary);
     z-index: 5;
     pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dolph-footer-logo {
+    height: 18px;
+    width: auto;
+    opacity: 0.8;
 }
 
 /* ========================================

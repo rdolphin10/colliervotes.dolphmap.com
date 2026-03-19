@@ -139,11 +139,6 @@ document.addEventListener('DOMContentLoaded', function() {
     dirToggle.addEventListener('click', function() {
         dirSection.classList.toggle('collapsed');
         sidebar.classList.toggle('auto-height', dirSection.classList.contains('collapsed'));
-        // Resize map to fill available space
-        const map = getMap();
-        if (map) {
-            setTimeout(function() { map.resize(); }, 50);
-        }
     });
 
     // Mobile sidebar toggle

@@ -217,7 +217,8 @@ document.addEventListener('DOMContentLoaded', function() {
         center: CONFIG.mapbox.center,
         zoom: CONFIG.mapbox.zoom,
         minZoom: CONFIG.mapbox.minZoom,
-        maxZoom: CONFIG.mapbox.maxZoom
+        maxZoom: CONFIG.mapbox.maxZoom,
+        maxBounds: CONFIG.mapbox.maxBounds
     });
 
     // Controls
