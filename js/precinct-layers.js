@@ -228,29 +228,52 @@ function selectPrecinct(map, feature) {
         });
     }
 
-    // Show popup after the map finishes moving, then nudge if popup is clipped
+    // Show popup after the map finishes moving, then ensure it's fully visible
     if (pinLng && pinLat) {
         map.once('moveend', function() {
             showPollingPopup(map, [pinLng, pinLat], props);
 
-            // After popup renders, check if pin is too close to viewport edge
-            // and pan slightly to ensure popup is fully visible
+            // Wait for popup to render in the DOM, then measure and pan if needed
             setTimeout(function() {
-                const pinPoint = map.project([pinLng, pinLat]);
-                const canvas = map.getCanvas();
-                const popupHeight = 200; // approximate popup height in pixels
-                const isMob = window.innerWidth <= 768;
-                const topSafe = isMob ? 260 : 20;
+                if (!activePopup) return;
 
-                // If the pin is so high that the popup (above it) would be clipped at the top
-                if (pinPoint.y - popupHeight < topSafe) {
-                    map.panBy([0, -(topSafe - (pinPoint.y - popupHeight))], { duration: 400 });
+                const popupEl = activePopup.getElement();
+                if (!popupEl) return;
+
+                const popupRect = popupEl.getBoundingClientRect();
+                const mapEl = map.getContainer();
+                const mapRect = mapEl.getBoundingClientRect();
+                const isMob = window.innerWidth <= 768;
+
+                // Calculate how much of the popup is hidden
+                // Top: account for sidebar overlay on mobile
+                const sidebarHeight = isMob ? document.getElementById('sidebar').getBoundingClientRect().height : 0;
+                const topEdge = mapRect.top + sidebarHeight + 10;
+                const bottomEdge = mapRect.bottom - 10;
+
+                let panY = 0;
+                let panX = 0;
+
+                // Popup clipped at top (most common — popup opens above pin)
+                if (popupRect.top < topEdge) {
+                    panY = popupRect.top - topEdge - 20; // negative = pan map down
                 }
-                // If the pin is too close to the bottom
-                if (pinPoint.y > canvas.height - 60) {
-                    map.panBy([0, pinPoint.y - (canvas.height - 120)], { duration: 400 });
+                // Popup clipped at bottom
+                if (popupRect.bottom > bottomEdge) {
+                    panY = popupRect.bottom - bottomEdge + 20;
                 }
-            }, 100);
+                // Popup clipped at left/right
+                if (popupRect.left < mapRect.left + 10) {
+                    panX = popupRect.left - mapRect.left - 20;
+                }
+                if (popupRect.right > mapRect.right - 10) {
+                    panX = popupRect.right - mapRect.right + 20;
+                }
+
+                if (panX !== 0 || panY !== 0) {
+                    map.panBy([panX, panY], { duration: 400 });
+                }
+            }, 300);
         });
     }
 
