@@ -206,38 +206,52 @@ function selectPrecinct(map, feature) {
     const pinLng = parseFloat(props.PinLng);
     const pinLat = parseFloat(props.PinLat);
 
-    // Fly to the polling pin location so the popup is always centered and visible
-    // Then fit bounds to show the precinct polygon context around it
-    if (pinLng && pinLat) {
+    // Fit bounds to include BOTH the precinct polygon AND the polling pin
+    const bounds = getBounds(feature.geometry);
+    if (bounds) {
+        const fitBounds = new mapboxgl.LngLatBounds(bounds);
+        // Extend to include the polling pin if it's outside the polygon
+        if (pinLng && pinLat) {
+            fitBounds.extend([pinLng, pinLat]);
+        }
+
         const isMobile = window.innerWidth <= 768;
-
-        // First: fly to center on the pin with enough zoom to see context
-        map.flyTo({
-            center: [pinLng, pinLat],
-            zoom: 13,
-            offset: [0, isMobile ? -60 : -40], // Shift up so popup has room above the pin
-            duration: 800
+        // Extra padding on all sides — generous bottom for popup that opens above the pin
+        map.fitBounds(fitBounds, {
+            padding: {
+                top: isMobile ? 280 : 140,
+                bottom: isMobile ? 160 : 200,
+                left: isMobile ? 40 : 120,
+                right: isMobile ? 40 : 120
+            },
+            maxZoom: 14
         });
+    }
 
-        // Show popup after the fly animation completes
+    // Show popup after the map finishes moving, then nudge if popup is clipped
+    if (pinLng && pinLat) {
         map.once('moveend', function() {
             showPollingPopup(map, [pinLng, pinLat], props);
+
+            // After popup renders, check if pin is too close to viewport edge
+            // and pan slightly to ensure popup is fully visible
+            setTimeout(function() {
+                const pinPoint = map.project([pinLng, pinLat]);
+                const canvas = map.getCanvas();
+                const popupHeight = 200; // approximate popup height in pixels
+                const isMob = window.innerWidth <= 768;
+                const topSafe = isMob ? 260 : 20;
+
+                // If the pin is so high that the popup (above it) would be clipped at the top
+                if (pinPoint.y - popupHeight < topSafe) {
+                    map.panBy([0, -(topSafe - (pinPoint.y - popupHeight))], { duration: 400 });
+                }
+                // If the pin is too close to the bottom
+                if (pinPoint.y > canvas.height - 60) {
+                    map.panBy([0, pinPoint.y - (canvas.height - 120)], { duration: 400 });
+                }
+            }, 100);
         });
-    } else {
-        // No pin — fall back to fitting the polygon bounds
-        const bounds = getBounds(feature.geometry);
-        if (bounds) {
-            const isMobile = window.innerWidth <= 768;
-            map.fitBounds(bounds, {
-                padding: {
-                    top: isMobile ? 280 : 120,
-                    bottom: isMobile ? 80 : 120,
-                    left: isMobile ? 40 : 100,
-                    right: isMobile ? 40 : 100
-                },
-                maxZoom: 14
-            });
-        }
     }
 
     document.dispatchEvent(new CustomEvent('precinctSelected', {
