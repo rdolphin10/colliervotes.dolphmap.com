@@ -9,7 +9,7 @@ const CONFIG = {
         style: 'mapbox://styles/mapbox/streets-v12',
         center: [-81.72, 26.14],
         zoom: 8.8,
-        minZoom: 8.5,
+        minZoom: 7.5,
         maxZoom: 16,
         // Bounds: SW corner, NE corner — tight around precinct extents
         maxBounds: [[-82.0, 25.65], [-80.7, 26.7]]
