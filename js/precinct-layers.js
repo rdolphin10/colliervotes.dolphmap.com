@@ -296,12 +296,11 @@ function showPollingPopup(map, lngLat, props) {
 }
 
 /**
- * Escape HTML for popup content
+ * Escape HTML for popup content — regex-based (avoids DOM element creation per call)
  */
+const _escapeMap = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 function escapePopupHTML(str) {
-    const div = document.createElement('div');
-    div.appendChild(document.createTextNode(str));
-    return div.innerHTML;
+    return String(str).replace(/[&<>"']/g, function(c) { return _escapeMap[c]; });
 }
 
 /**
