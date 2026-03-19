@@ -176,8 +176,13 @@ document.addEventListener('DOMContentLoaded', function() {
             link.rel = 'noopener noreferrer';
             link.title = 'Dolph Map Company';
             const img = document.createElement('img');
-            img.src = 'assets/logos/dolph-logo.jpg';
             img.alt = 'Dolph Map Company';
+            img.loading = 'lazy';
+            // Use WebP with JPG fallback
+            const testWebP = document.createElement('canvas');
+            img.src = (testWebP.toDataURL && testWebP.toDataURL('image/webp').indexOf('data:image/webp') === 0)
+                ? 'assets/logos/dolph-logo.webp'
+                : 'assets/logos/dolph-logo.jpg';
             link.appendChild(img);
             container.appendChild(link);
             return container;

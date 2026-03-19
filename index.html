@@ -20,12 +20,19 @@
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicons/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/favicons/favicon-16x16.png">
 
+    <!-- Preconnect to Mapbox CDN — reduces connection latency for tiles + API -->
+    <link rel="preconnect" href="https://api.mapbox.com">
+    <link rel="preconnect" href="https://events.mapbox.com">
+
+    <!-- Preload the header logo (LCP element) -->
+    <link rel="preload" as="image" type="image/webp" href="assets/logos/collier-votes-header.webp">
+
     <!-- Mapbox GL JS v3.0.0 -->
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.css" rel="stylesheet">
 
     <!-- App Styles -->
-    <link rel="stylesheet" href="css/theme.css?v=4">
-    <link rel="stylesheet" href="css/styles.css?v=4">
+    <link rel="stylesheet" href="css/theme.css?v=5">
+    <link rel="stylesheet" href="css/styles.css?v=5">
 </head>
 <body>
     <div class="app-container">
@@ -34,7 +41,10 @@
         <div class="sidebar auto-height" id="sidebar">
             <!-- Header with logos -->
             <div class="sidebar-header">
-                <img src="assets/logos/collier-votes-header.png" alt="Melissa R. Blazier — Collier County Supervisor of Elections" class="header-logo-wide">
+                <picture>
+                    <source srcset="assets/logos/collier-votes-header.webp" type="image/webp">
+                    <img src="assets/logos/collier-votes-header-opt.png" alt="Melissa R. Blazier — Collier County Supervisor of Elections" class="header-logo-wide" width="442" height="144" fetchpriority="high">
+                </picture>
             </div>
 
             <!-- Address lookup -->
@@ -86,7 +96,10 @@
 
             <!-- Footer -->
             <div class="sidebar-footer">
-                <img src="assets/logos/dolph-logo.jpg" alt="Dolph Map Company" class="sidebar-footer-logo">
+                <picture>
+                    <source srcset="assets/logos/dolph-logo.webp" type="image/webp">
+                    <img src="assets/logos/dolph-logo.jpg" alt="Dolph Map Company" class="sidebar-footer-logo" width="269" height="56" loading="lazy">
+                </picture>
                 <span>&copy; 2026 Dolph Map Company &mdash; Est. 1926</span>
             </div>
         </div>
@@ -98,13 +111,13 @@
 
     </div>
 
-    <!-- Mapbox GL JS v3.0.0 -->
-    <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.js"></script>
+    <!-- Mapbox GL JS v3.0.0 — defer to unblock initial paint -->
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.js" defer></script>
 
-    <!-- App Scripts (load order matters) -->
-    <script src="js/config.js?v=4"></script>
-    <script src="js/precinct-map.js?v=4"></script>
-    <script src="js/precinct-layers.js?v=4"></script>
-    <script src="js/sidebar.js?v=4"></script>
+    <!-- App Scripts — defer preserves load order while unblocking render -->
+    <script src="js/config.js?v=5" defer></script>
+    <script src="js/precinct-map.js?v=5" defer></script>
+    <script src="js/precinct-layers.js?v=5" defer></script>
+    <script src="js/sidebar.js?v=5" defer></script>
 </body>
 </html>
