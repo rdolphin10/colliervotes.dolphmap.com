@@ -1,0 +1,44 @@
+/**
+ * THEME.CSS - Dolph Map Company Elections Branding
+ *
+ * Color palette and typography for the Collier County Precinct Map.
+ * Matches the existing Dolph Map Company chamber map styling.
+ */
+
+:root {
+    /* Dolph Brand Colors */
+    --color-red: #ed1c24;
+    --color-dark: #231f20;
+    --color-light: #f7f7f7;
+    --color-white: #ffffff;
+
+    /* Precinct Fill */
+    --color-precinct: #1a5276;
+    --color-precinct-hover: #2471a3;
+
+    /* Text Colors */
+    --color-text-primary: #333333;
+    --color-text-secondary: #666666;
+    --color-text-light: #999999;
+    --color-text-white: #ffffff;
+
+    /* Backgrounds */
+    --color-bg-primary: #ffffff;
+    --color-bg-secondary: #f5f5f5;
+
+    /* Borders */
+    --color-border: #dddddd;
+    --color-border-dark: #cccccc;
+
+    /* Typography - matches existing chamber maps */
+    --font-primary: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-size-base: 16px;
+    --font-weight-normal: 400;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    /* Shadows */
+    --shadow-small: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.15);
+    --shadow-large: 0 8px 16px rgba(0, 0, 0, 0.2);
+}

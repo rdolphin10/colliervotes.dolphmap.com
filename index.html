@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO -->
+    <title>Collier County Precinct Map — Dolph Map Company</title>
+    <meta name="description" content="Interactive precinct map for Collier County, Florida. Find your voting precinct and polling location.">
+    <meta name="keywords" content="Collier County, precinct map, voting, polling locations, elections, Florida, Dolph Map Company">
+    <meta name="author" content="Dolph Map Company">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Collier County Precinct Map — Dolph Map Company">
+    <meta property="og:description" content="Interactive precinct map for Collier County, Florida. Find your voting precinct and polling location.">
+    <meta property="og:type" content="website">
+
+    <!-- Mapbox GL JS v3.0.0 -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.css" rel="stylesheet">
+
+    <!-- App Styles -->
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">Dolph Map Company</div>
+                <div class="title">Collier County Precinct Map</div>
+            </div>
+
+            <div class="address-search">
+                <div class="address-search-label">Find Your Precinct</div>
+                <div class="address-search-row">
+                    <input type="text"
+                           class="search-input"
+                           id="address-input"
+                           placeholder="Enter your address..."
+                           autocomplete="off">
+                    <button class="address-search-btn" id="address-search-btn" title="Search">&#8594;</button>
+                </div>
+                <div class="address-search-result" id="address-result"></div>
+            </div>
+
+            <div class="sidebar-search">
+                <input type="text"
+                       class="search-input"
+                       id="search-input"
+                       placeholder="Filter by precinct # or location..."
+                       autocomplete="off">
+            </div>
+
+            <div class="sidebar-stats" id="sidebar-stats">
+                <span class="stat-count" id="precinct-count">0</span> Precincts
+            </div>
+
+            <!-- Precinct list view -->
+            <div class="sidebar-content" id="precinct-list">
+                <!-- Populated by sidebar.js -->
+            </div>
+            <div class="no-results" id="no-results">No precincts found</div>
+
+            <!-- Detail view (hidden by default) -->
+            <div class="detail-panel" id="detail-panel">
+                <div class="detail-header">
+                    <button class="detail-back" id="detail-back" title="Back to list">&larr;</button>
+                    <span>Precinct</span>
+                    <span class="detail-precinct-number" id="detail-precinct-number"></span>
+                </div>
+                <div class="detail-body">
+                    <div class="detail-row">
+                        <div class="detail-label">Polling Location</div>
+                        <div class="detail-value" id="detail-polling-location"></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Address</div>
+                        <div class="detail-value" id="detail-address"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div class="map-container">
+            <div id="map"></div>
+            <div class="dolph-footer">&copy; 2026 Dolph Map Company &mdash; Est. 1926</div>
+            <button class="sidebar-toggle" id="sidebar-toggle">&#9776; Precincts</button>
+        </div>
+
+    </div>
+
+    <!-- Mapbox GL JS v3.0.0 -->
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.js"></script>
+
+    <!-- App Scripts (load order matters) -->
+    <script src="js/config.js"></script>
+    <script src="js/precinct-map.js"></script>
+    <script src="js/precinct-layers.js"></script>
+    <script src="js/sidebar.js"></script>
+</body>
+</html>
