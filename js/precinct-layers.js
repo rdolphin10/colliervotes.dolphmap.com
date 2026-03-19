@@ -215,8 +215,15 @@ function selectPrecinct(map, feature) {
             fitBounds.extend([pinLng, pinLat]);
         }
         // Use generous padding so the popup is never cut off
+        // Extra top padding on mobile for the floating sidebar
+        const isMobile = window.innerWidth <= 768;
         map.fitBounds(fitBounds, {
-            padding: { top: 120, bottom: 120, left: 100, right: 100 },
+            padding: {
+                top: isMobile ? 280 : 120,
+                bottom: isMobile ? 80 : 120,
+                left: isMobile ? 40 : 100,
+                right: isMobile ? 40 : 100
+            },
             maxZoom: 14
         });
     }

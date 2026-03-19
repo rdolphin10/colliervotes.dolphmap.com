@@ -24,8 +24,8 @@
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.css" rel="stylesheet">
 
     <!-- App Styles -->
-    <link rel="stylesheet" href="css/theme.css?v=2">
-    <link rel="stylesheet" href="css/styles.css?v=2">
+    <link rel="stylesheet" href="css/theme.css?v=3">
+    <link rel="stylesheet" href="css/styles.css?v=3">
 </head>
 <body>
     <div class="app-container">
@@ -34,22 +34,21 @@
         <div class="sidebar auto-height" id="sidebar">
             <!-- Header with logos -->
             <div class="sidebar-header">
-                <img src="assets/logos/collier-votes-logo.png" alt="Collier County Supervisor of Elections" class="header-logo">
-                <div class="header-text">
-                    <div class="header-title">Collier County</div>
-                    <div class="header-subtitle">Precinct Map</div>
-                </div>
+                <img src="assets/logos/collier-votes-header.png" alt="Melissa R. Blazier — Collier County Supervisor of Elections" class="header-logo-wide">
             </div>
 
             <!-- Address lookup -->
             <div class="address-search">
                 <div class="address-search-label">Find Your Precinct</div>
                 <div class="address-search-row">
-                    <input type="text"
-                           class="search-input"
-                           id="address-input"
-                           placeholder="Enter your home address..."
-                           autocomplete="off">
+                    <div class="address-input-wrapper">
+                        <input type="text"
+                               class="search-input"
+                               id="address-input"
+                               placeholder="Enter your home address..."
+                               autocomplete="off">
+                        <div class="address-suggestions" id="address-suggestions"></div>
+                    </div>
                     <button class="address-search-btn" id="address-search-btn" title="Search">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -87,19 +86,14 @@
 
             <!-- Footer -->
             <div class="sidebar-footer">
-                <span>Powered by</span>
-                <strong>Dolph Map Company</strong>
+                <img src="assets/logos/dolph-logo.jpg" alt="Dolph Map Company" class="sidebar-footer-logo">
+                <span>&copy; 2026 Dolph Map Company &mdash; Est. 1926</span>
             </div>
         </div>
 
         <!-- Map -->
         <div class="map-container">
             <div id="map"></div>
-            <div class="dolph-footer">
-                <img src="assets/logos/dolph-logo.jpg" alt="Dolph Map Company" class="dolph-footer-logo">
-                <span>&copy; 2026 Dolph Map Company &mdash; Est. 1926</span>
-            </div>
-            <button class="sidebar-toggle" id="sidebar-toggle">&#9776; Precincts</button>
         </div>
 
     </div>
@@ -108,9 +102,9 @@
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.js"></script>
 
     <!-- App Scripts (load order matters) -->
-    <script src="js/config.js"></script>
-    <script src="js/precinct-map.js"></script>
-    <script src="js/precinct-layers.js"></script>
-    <script src="js/sidebar.js"></script>
+    <script src="js/config.js?v=3"></script>
+    <script src="js/precinct-map.js?v=3"></script>
+    <script src="js/precinct-layers.js?v=3"></script>
+    <script src="js/sidebar.js?v=3"></script>
 </body>
 </html>

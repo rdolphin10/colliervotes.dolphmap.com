@@ -64,7 +64,17 @@ function renderPrecinctList(precincts) {
 
     listEl.querySelectorAll('.precinct-list-item').forEach(function(item) {
         item.addEventListener('click', function() {
-            selectPrecinctByNumber(this.getAttribute('data-precinct'));
+            const precinctNum = this.getAttribute('data-precinct');
+            // On mobile, collapse directory so popup is visible on the map
+            if (window.innerWidth <= 768) {
+                const dirSection = document.getElementById('directory-section');
+                const sidebar = document.getElementById('sidebar');
+                if (!dirSection.classList.contains('collapsed')) {
+                    dirSection.classList.add('collapsed');
+                    sidebar.classList.add('auto-height');
+                }
+            }
+            selectPrecinctByNumber(precinctNum);
         });
     });
 
@@ -141,15 +151,6 @@ document.addEventListener('DOMContentLoaded', function() {
         sidebar.classList.toggle('auto-height', dirSection.classList.contains('collapsed'));
     });
 
-    // Mobile sidebar toggle
-    const toggleBtn = document.getElementById('sidebar-toggle');
-
-    toggleBtn.addEventListener('click', function() {
-        sidebar.classList.toggle('collapsed');
-        toggleBtn.textContent = sidebar.classList.contains('collapsed')
-            ? '\u2630 Precincts'
-            : '\u2715 Close';
-    });
 });
 
 /**
@@ -249,8 +250,85 @@ function setupAddressSearch() {
 
     btn.addEventListener('click', doSearch);
     input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') doSearch();
+        if (e.key === 'Enter') {
+            hideSuggestions();
+            doSearch();
+        }
     });
+
+    // Autocomplete suggestions
+    const suggestionsEl = document.getElementById('address-suggestions');
+    let suggestTimer = null;
+
+    input.addEventListener('input', function() {
+        const query = this.value.trim();
+        clearTimeout(suggestTimer);
+
+        if (query.length < 3) {
+            hideSuggestions();
+            return;
+        }
+
+        suggestTimer = setTimeout(function() {
+            fetchSuggestions(query);
+        }, 300);
+    });
+
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.address-input-wrapper')) {
+            hideSuggestions();
+        }
+    });
+
+    function fetchSuggestions(query) {
+        const token = CONFIG.mapbox.accessToken;
+        const url = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' +
+            encodeURIComponent(query) +
+            '.json?access_token=' + token +
+            '&autocomplete=true&limit=5&bbox=-82.2,25.7,-80.8,26.5&country=US&types=address';
+
+        fetch(url)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (!data.features || data.features.length === 0) {
+                    hideSuggestions();
+                    return;
+                }
+                showSuggestions(data.features);
+            })
+            .catch(function() {
+                hideSuggestions();
+            });
+    }
+
+    function showSuggestions(features) {
+        suggestionsEl.innerHTML = features.map(function(f) {
+            return '<div class="address-suggestion-item" data-place="' + escapeAttr(f.place_name) + '" data-lng="' + f.center[0] + '" data-lat="' + f.center[1] + '">' +
+                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                    '<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>' +
+                    '<circle cx="12" cy="9" r="2.5"/>' +
+                '</svg>' +
+                '<span class="address-suggestion-text">' + escapeHTML(f.place_name) + '</span>' +
+            '</div>';
+        }).join('');
+
+        suggestionsEl.classList.add('visible');
+
+        // Click handler for each suggestion
+        suggestionsEl.querySelectorAll('.address-suggestion-item').forEach(function(item) {
+            item.addEventListener('click', function() {
+                input.value = this.getAttribute('data-place');
+                hideSuggestions();
+                doSearch();
+            });
+        });
+    }
+
+    function hideSuggestions() {
+        suggestionsEl.classList.remove('visible');
+        suggestionsEl.innerHTML = '';
+    }
 }
 
 function findPrecinctAtPoint(lng, lat) {

@@ -223,7 +223,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Controls
     map.addControl(new mapboxgl.NavigationControl(), 'top-right');
-    map.addControl(new mapboxgl.ScaleControl({ unit: 'imperial' }), 'bottom-left');
+
+    // Dolph Map Company logo — bottom-left
+    const dolphControl = {
+        onAdd: function() {
+            const container = document.createElement('div');
+            container.className = 'mapboxgl-ctrl dolph-map-logo';
+            const link = document.createElement('a');
+            link.href = 'https://www.dolphmap.com';
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.title = 'Dolph Map Company';
+            const img = document.createElement('img');
+            img.src = 'assets/logos/dolph-logo.jpg';
+            img.alt = 'Dolph Map Company';
+            link.appendChild(img);
+            container.appendChild(link);
+            return container;
+        },
+        onRemove: function() {}
+    };
+    map.addControl(dolphControl, 'bottom-left');
 
     map.on('load', function() {
         applyDolphStyle(map);
