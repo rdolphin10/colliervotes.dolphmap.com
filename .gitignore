@@ -1,3 +1,5 @@
 .claude/
 data/polling-locations.json
 lighthouse-report.*
+lighthouse-report
+lighthouse-tavares

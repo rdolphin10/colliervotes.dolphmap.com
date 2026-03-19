@@ -206,33 +206,38 @@ function selectPrecinct(map, feature) {
     const pinLng = parseFloat(props.PinLng);
     const pinLat = parseFloat(props.PinLat);
 
-    // Fit bounds to include BOTH the precinct polygon AND the polling pin
-    const bounds = getBounds(feature.geometry);
-    if (bounds) {
-        const fitBounds = new mapboxgl.LngLatBounds(bounds);
-        // Extend to include the polling pin if it's outside the polygon
-        if (pinLng && pinLat) {
-            fitBounds.extend([pinLng, pinLat]);
-        }
-        // Use generous padding so the popup is never cut off
-        // Extra top padding on mobile for the floating sidebar
-        const isMobile = window.innerWidth <= 768;
-        map.fitBounds(fitBounds, {
-            padding: {
-                top: isMobile ? 280 : 120,
-                bottom: isMobile ? 80 : 120,
-                left: isMobile ? 40 : 100,
-                right: isMobile ? 40 : 100
-            },
-            maxZoom: 14
-        });
-    }
-
-    // Show popup at the polling pin after the map finishes moving
+    // Fly to the polling pin location so the popup is always centered and visible
+    // Then fit bounds to show the precinct polygon context around it
     if (pinLng && pinLat) {
-        setTimeout(function() {
+        const isMobile = window.innerWidth <= 768;
+
+        // First: fly to center on the pin with enough zoom to see context
+        map.flyTo({
+            center: [pinLng, pinLat],
+            zoom: 13,
+            offset: [0, isMobile ? -60 : -40], // Shift up so popup has room above the pin
+            duration: 800
+        });
+
+        // Show popup after the fly animation completes
+        map.once('moveend', function() {
             showPollingPopup(map, [pinLng, pinLat], props);
-        }, 800);
+        });
+    } else {
+        // No pin — fall back to fitting the polygon bounds
+        const bounds = getBounds(feature.geometry);
+        if (bounds) {
+            const isMobile = window.innerWidth <= 768;
+            map.fitBounds(bounds, {
+                padding: {
+                    top: isMobile ? 280 : 120,
+                    bottom: isMobile ? 80 : 120,
+                    left: isMobile ? 40 : 100,
+                    right: isMobile ? 40 : 100
+                },
+                maxZoom: 14
+            });
+        }
     }
 
     document.dispatchEvent(new CustomEvent('precinctSelected', {
