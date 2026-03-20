@@ -11,8 +11,8 @@ const CONFIG = {
         zoom: 8.8,
         minZoom: 5,
         maxZoom: 16,
-        // Bounds: SW corner, NE corner — tight around precinct extents
-        maxBounds: [[-82.0, 25.65], [-80.7, 26.7]]
+        // Bounds: SW corner, NE corner — tight around Collier County
+        maxBounds: [[-81.95, 25.75], [-81.15, 26.45]]
     },
     data: {
         geojsonPath: 'data/precincts.geojson'
