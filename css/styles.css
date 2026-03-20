@@ -519,28 +519,69 @@ html, body {
 
 
 /* ========================================
-   DOLPH MAP LOGO (bottom-left map control)
+   DOLPH MAP PANEL — legend + logo (bottom-left)
    ======================================== */
-.dolph-map-logo {
-    background: rgba(255, 255, 255, 0.9);
+.dolph-map-panel {
+    background: rgba(255, 255, 255, 0.92);
     border-radius: 6px;
-    padding: 4px;
     box-shadow: var(--shadow-small);
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
-.dolph-map-logo a {
+.map-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #333;
+    white-space: nowrap;
+}
+
+.legend-swatch {
+    width: 14px;
+    height: 14px;
+    background: rgba(26, 82, 118, 0.25);
+    border: 1.5px solid #1a5276;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.dolph-logo-wrap {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    padding-top: 5px;
+}
+
+.dolph-logo-wrap a {
     display: block;
     line-height: 0;
 }
 
-.dolph-map-logo img {
-    height: 28px;
+.dolph-logo-wrap img {
+    height: 22px;
     width: auto;
 }
 
 @media (max-width: 768px) {
-    .dolph-map-logo img {
-        height: 22px;
+    .dolph-map-panel {
+        padding: 6px 8px;
+        gap: 4px;
+    }
+
+    .legend-item {
+        font-size: 10px;
+    }
+
+    .dolph-logo-wrap img {
+        height: 18px;
     }
 }
 

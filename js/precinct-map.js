@@ -165,11 +165,34 @@ document.addEventListener('DOMContentLoaded', function() {
     // Controls
     map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-    // Dolph Map Company logo — bottom-left
+    // Dolph Map Company logo + legend — bottom-left
     const dolphControl = {
         onAdd: function() {
             const container = document.createElement('div');
-            container.className = 'mapboxgl-ctrl dolph-map-logo';
+            container.className = 'mapboxgl-ctrl dolph-map-panel';
+
+            // Legend
+            const legend = document.createElement('div');
+            legend.className = 'map-legend';
+            legend.innerHTML =
+                '<div class="legend-item">' +
+                    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none">' +
+                        '<rect x="3" y="10" width="18" height="12" rx="2" fill="#ed1c24" stroke="#fff" stroke-width="1.2"/>' +
+                        '<rect x="8" y="9" width="8" height="2" rx="0.5" fill="#b71c1c"/>' +
+                        '<rect x="9.5" y="3" width="5" height="8" rx="0.5" fill="#fff" stroke="#ed1c24" stroke-width="0.8"/>' +
+                        '<path d="M10.8 7.5 L11.5 8.5 L13.2 5.8" stroke="#ed1c24" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>' +
+                    '</svg>' +
+                    '<span>Polling Location</span>' +
+                '</div>' +
+                '<div class="legend-item">' +
+                    '<div class="legend-swatch"></div>' +
+                    '<span>Precinct Boundary</span>' +
+                '</div>';
+            container.appendChild(legend);
+
+            // Logo
+            const logoWrap = document.createElement('div');
+            logoWrap.className = 'dolph-logo-wrap';
             const link = document.createElement('a');
             link.href = 'https://www.dolphmap.com';
             link.target = '_blank';
@@ -178,13 +201,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const img = document.createElement('img');
             img.alt = 'Dolph Map Company';
             img.loading = 'lazy';
-            // Use WebP with JPG fallback
             const testWebP = document.createElement('canvas');
             img.src = (testWebP.toDataURL && testWebP.toDataURL('image/webp').indexOf('data:image/webp') === 0)
                 ? 'assets/logos/dolph-logo.webp'
                 : 'assets/logos/dolph-logo.jpg';
             link.appendChild(img);
-            container.appendChild(link);
+            logoWrap.appendChild(link);
+            container.appendChild(logoWrap);
+
             return container;
         },
         onRemove: function() {}
