@@ -235,7 +235,7 @@ function setupAddressSearch() {
         btn.disabled = true;
         btn.innerHTML = '...';
         resultEl.className = 'address-search-result';
-        resultEl.style.display = 'none';
+        resultEl.style.display = '';
 
         var token = CONFIG.mapbox.accessToken;
 
