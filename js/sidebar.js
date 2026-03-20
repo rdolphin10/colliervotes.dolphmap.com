@@ -237,26 +237,53 @@ function setupAddressSearch() {
         resultEl.className = 'address-search-result';
         resultEl.style.display = 'none';
 
-        const token = CONFIG.mapbox.accessToken;
-        const url = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' +
+        var token = CONFIG.mapbox.accessToken;
+
+        // First try with Collier County bbox
+        var bboxUrl = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' +
             encodeURIComponent(address) +
             '.json?access_token=' + token +
             '&limit=1&bbox=-82.2,25.7,-80.8,26.5&country=US';
 
-        fetch(url)
+        // Fallback without bbox to detect out-of-area addresses
+        var wideUrl = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' +
+            encodeURIComponent(address) +
+            '.json?access_token=' + token +
+            '&limit=1&country=US';
+
+        fetch(bboxUrl)
             .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.features && data.features.length > 0) {
+                    return data; // Found within Collier area
+                }
+                // Nothing in Collier bbox — check if it exists elsewhere
+                return fetch(wideUrl).then(function(r) { return r.json(); }).then(function(wideData) {
+                    if (wideData.features && wideData.features.length > 0) {
+                        // Address exists but outside Collier County
+                        wideData._outsideCollier = true;
+                    }
+                    return wideData;
+                });
+            })
             .then(function(data) {
                 btn.disabled = false;
                 btn.innerHTML = searchSvg;
 
                 if (!data.features || data.features.length === 0) {
-                    resultEl.textContent = 'Address not found. Try including city and state.';
+                    resultEl.textContent = 'Address not found. Please enter a valid street address.';
                     resultEl.className = 'address-search-result visible error';
                     return;
                 }
 
-                const coords = data.features[0].center;
-                const precinct = findPrecinctAtPoint(coords[0], coords[1]);
+                if (data._outsideCollier) {
+                    resultEl.textContent = 'This address is outside Collier County. This tool only covers Collier County precincts.';
+                    resultEl.className = 'address-search-result visible error';
+                    return;
+                }
+
+                var coords = data.features[0].center;
+                var precinct = findPrecinctAtPoint(coords[0], coords[1]);
 
                 if (precinct) {
                     resultEl.innerHTML =
@@ -275,7 +302,7 @@ function setupAddressSearch() {
                     resultEl.textContent = 'This address does not appear to be within a Collier County precinct.';
                     resultEl.className = 'address-search-result visible error';
                     addAddressMarker(coords);
-                    const map = getMap();
+                    var map = getMap();
                     if (map) map.flyTo({ center: coords, zoom: 13 });
                 }
             })
